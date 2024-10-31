@@ -77,13 +77,14 @@ TEST_EXPECT_DIR = Path(__file__).parent / Path("test_expects")
 
 # 全てのテストデータ
 test_data = sorted(glob.glob(f"{TEST_BASE_DIR}/input0[12]/*.mpl", recursive=True))
-paramed_test_data = [
-    pytest.param(mpl_file, id=Path(mpl_file).name) for mpl_file in test_data
-]
+
 # エラーが出ないことが期待されるデータのみ
 test_valid_data = sorted(
     glob.glob(f"{TEST_BASE_DIR}/input0[12]/sample[!0]*.mpl", recursive=True)
 )
+paramed_test_data = [
+    pytest.param(mpl_file, id=Path(mpl_file).name) for mpl_file in test_valid_data
+]
 
 
 @pytest.mark.timeout(10)
@@ -122,3 +123,25 @@ def test_run(mpl_file):
                 assert o - 1 <= e <= o + 1, "Line number of error message is different."
             except IndexError:
                 assert False, "Line number does not appear in error message."
+
+
+test_defect_data = sorted(
+    glob.glob(f"{TEST_BASE_DIR}/input0[12]/sample0*.mpl", recursive=True)
+)
+paramed_defect_data = [
+    pytest.param(mpl_file, id=Path(mpl_file).name) for mpl_file in test_valid_data
+]
+
+
+@pytest.mark.timeout(10)
+@pytest.mark.parametrize(("mpl_file"), paramed_defect_data)
+def test_error(mpl_file):
+    """準備したテストケースを全て実行する．"""
+    # 期待された出力が得られるかを確認．ただし，厳密すぎるため，テストに通らないからといってダメというわけではない．
+    if not Path(TEST_RESULT_DIR).exists():
+        os.mkdir(TEST_RESULT_DIR)
+    out_file = Path(TEST_RESULT_DIR).joinpath(Path(mpl_file).stem + ".out")
+    res = common_task(mpl_file, out_file)
+    # 正常終了した場合
+    if res == 0:
+        assert False, "This test should be failed."
