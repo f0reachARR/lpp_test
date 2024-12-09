@@ -26,6 +26,7 @@ class LppCollector:
 
     def pytest_sessionfinish(self, session, exitstatus):
         if self.consent.get_consent() is None:
+            self.uploader.store(source_dir=TARGETPATH, test_type="")
             return
 
         if not self.uploader.has_any_test_result():

@@ -73,6 +73,28 @@ class Uploader:
                 return False
         return True
 
+    def store(self, source_dir: str, test_type: str):
+        source_files = sum(
+            [
+                glob(f"{source_dir}/**/{pat}", recursive=True)
+                for pat in LPP_SOURCE_FILES
+            ],
+            [],
+        )
+
+        source_blob = self._compress_tar(source_files)
+        source_blob.seek(0)
+
+        result = TestResultRequest(
+            device_time=datetime.now(),
+            test_type=test_type,
+            result=self.test_results,
+            testcases=File(payload=BytesIO(), file_name="source.tar"),
+            source_code=File(payload=source_blob, file_name="source.tar"),
+        )
+
+        self._store_test_result(result)
+
     def upload(self, source_dir: str, test_dir: str, test_type: str):
         can_upload = self._flush_test_queue()
 
@@ -108,6 +130,6 @@ class Uploader:
             if response.status_code != 201:
                 raise Exception(f"Failed to upload test results: {response.content}")
         except:
-            print(f"Failed to upload test results: {e}")
+            print(f"Failed to upload test results")
             self._store_test_result(result)
             return
