@@ -87,9 +87,12 @@ def check_update():
         return True
 
     last_update = os.path.getmtime(LPP_UPDATE_MARKER)
-    write_update_marker()
+    should_update = (time.time() - last_update) > LPP_UPDATE_INTERVAL
 
-    return (time.time() - last_update) > LPP_UPDATE_INTERVAL
+    if should_update:
+        write_update_marker()
+
+    return should_update
 
 
 def update(force: bool = False):
