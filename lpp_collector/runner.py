@@ -90,13 +90,13 @@ def run_pytest(args):
 
     pwd = os.getcwd()
     os.environ["LPP_TARGET_PATH"] = pwd
-    os.chdir(TEST_BASE_DIR)
     subprocess.call(
         [
             "pytest",
             *args.pytest_args,
             *testcase_paths,
-        ]
+        ],
+        cwd=TEST_BASE_DIR,
     )
     os.chdir(pwd)
 

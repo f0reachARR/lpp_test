@@ -117,7 +117,7 @@ def test_not_valid_file():
 
 def test_absolute_path_file():
     """絶対パスでファイルを指定した場合のテスト"""
-    shutil.copy("../input01/sample12.mpl", "/tmp/sample12.mpl")
+    shutil.copy(f"{TEST_BASE_DIR}/input01/sample12.mpl", "/tmp/sample12.mpl")
     exe = Path(TARGETPATH) / Path(TARGET)
     command(f"{exe} /tmp/sample12.mpl")
     if os.path.isfile("./sample12.csl"):
@@ -128,13 +128,18 @@ def test_absolute_path_file():
         assert False, "絶対パスでのファイル名指定ができていません"
 
 
-def test_relative_path_file():
-    """相対パスでファイルを指定した場合のテスト"""
+def test_dotted_path_file():
+    """ドットを含むパスでファイルを指定した場合のテスト"""
+    shutil.copy(f"{TEST_BASE_DIR}/input01/sample12.mpl", "/tmp/test.success.mpl")
     exe = Path(TARGETPATH) / Path(TARGET)
-    command(f"{exe} ../input01/sample12.mpl")
-    if os.path.isfile("./sample12.csl"):
+    command(f"{exe} /tmp/sample12.mpl")
+    if os.path.isfile("./test.success.mpl"):
         assert True
-    elif os.path.isfile("../input01/sample12.csl"):
+    elif os.path.isfile("/tmp/test.success.mpl"):
         assert True
+    elif os.path.isfile("/tmp/test.csl") or os.path.isfile("./test.csl"):
+        assert (
+            False
+        ), "ドットを含むファイル名が正しく取り扱いできていません (test.success.cslではなくtest.cslが生成された)"
     else:
-        assert False, "相対パスでのファイル名指定ができていません"
+        assert False, "ファイル名指定ができていません"

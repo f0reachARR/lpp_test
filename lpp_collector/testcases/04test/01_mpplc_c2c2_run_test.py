@@ -67,19 +67,24 @@ def compile_task(mpl_file, out_file):
         # mpplc = Path(__file__).parent.parent.joinpath("mpplc")
         exe = Path(TARGETPATH) / Path(TARGET)
         exec_res = command(f"{exe} {mpl_file}")
-        cslfile = Path(mpl_file).stem + ".csl"
-        if not Path(cslfile).exists():
-            cslfile2 = Path(mpl_file).with_suffix(".csl")
-            if not Path(cslfile2).exists():
-                raise FileNotFoundError(f"Not found: {cslfile} or {cslfile2}")
-            cslfile = cslfile2
+        csl_filename = Path(mpl_file).stem + ".csl"
+        csl_candidates = [
+            Path(TEST_BASE_DIR) / Path(csl_filename),
+            Path(mpl_file).parent / Path(csl_filename),
+        ]
+        cslfile = next((c for c in csl_candidates if c.exists()), None)
+        if cslfile is None:
+            raise FileNotFoundError(".csl file not found.")
         out = []
         exec_res.pop(0)
         serr = exec_res.pop(0)
         if serr:
             raise CompileError(serr)
-        casl2file = Path(__file__).parent / Path(CASL2_FILE_DIR) / Path(cslfile).name
-        os.rename(cslfile, casl2file)
+
+        casl2dir = Path(__file__).parent / Path(CASL2_FILE_DIR)
+        casl2dir.mkdir(exist_ok=True)
+        casl2file = casl2dir / cslfile.name
+        cslfile.rename(casl2file)
         return 0
     except CompileError as exc:
         if re.search(r"sample0", mpl_file):
@@ -105,7 +110,8 @@ def execution_task(casl2_file, out_file):
         assembler_text = interactive_command(f"node {c2c2} -n -c -a {casl2_file}")
         if "DEFINED SYMBOLS" not in assembler_text:
             raise Casl2AssembleError("Failed to compile")
-        with open("input.json", encoding="utf-8") as fp:
+        input_path = Path(__file__).parent / Path("input.json")
+        with open(input_path, encoding="utf-8") as fp:
             inp = json.load(fp)
         inputparams = ""
         if Path(casl2_file).name in inp.keys():
