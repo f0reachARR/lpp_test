@@ -57,8 +57,6 @@ def run_debug_build(base_dir: str):
     build_args = [
         "buildx",
         "build",
-        "--platform",
-        "linux/amd64",
         "-t",
         DOCKER_IMAGE,
         base_dir,

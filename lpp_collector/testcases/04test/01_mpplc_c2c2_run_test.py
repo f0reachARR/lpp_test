@@ -67,6 +67,13 @@ def compile_task(mpl_file, out_file):
         # mpplc = Path(__file__).parent.parent.joinpath("mpplc")
         exe = Path(TARGETPATH) / Path(TARGET)
         exec_res = command(f"{exe} {mpl_file}")
+
+        out = []
+        exec_res.pop(0)
+        serr = exec_res.pop(0)
+        if serr:
+            raise CompileError(serr)
+
         csl_filename = Path(mpl_file).stem + ".csl"
         csl_candidates = [
             Path(TEST_BASE_DIR) / Path(csl_filename),
@@ -75,11 +82,6 @@ def compile_task(mpl_file, out_file):
         cslfile = next((c for c in csl_candidates if c.exists()), None)
         if cslfile is None:
             raise FileNotFoundError(".csl file not found.")
-        out = []
-        exec_res.pop(0)
-        serr = exec_res.pop(0)
-        if serr:
-            raise CompileError(serr)
 
         casl2dir = Path(__file__).parent / Path(CASL2_FILE_DIR)
         casl2dir.mkdir(exist_ok=True)
