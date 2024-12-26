@@ -68,6 +68,7 @@ def compile_task(mpl_file, out_file):
         exe = Path(TARGETPATH) / Path(TARGET)
         exec_res = command(f"{exe} {mpl_file}")
 
+        cslfile = None
         out = []
         exec_res.pop(0)
         serr = exec_res.pop(0)
@@ -96,7 +97,8 @@ def compile_task(mpl_file, out_file):
             with open(out_file, mode="w", encoding="utf-8") as fp:
                 for l in out:
                     fp.write(l + "\n")
-            os.remove(cslfile)
+            if cslfile is not None:
+                os.remove(cslfile)
             return 1
         raise exc
     except Exception as err:
