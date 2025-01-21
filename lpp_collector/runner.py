@@ -4,6 +4,7 @@ import subprocess
 import sys
 from typing import List
 from lpp_collector.config import (
+    LPP_DATA_DIR,
     TEST_BASE_DIR,
     IS_DOCKER_ENV,
 )
@@ -103,6 +104,9 @@ def run_pytest(args):
 
 def main():
     args = full_parser.parse_args()
+
+    if not os.path.exists(LPP_DATA_DIR):
+        os.mkdir(LPP_DATA_DIR)
     # print(args)
     if args.update:
         update(True)
