@@ -125,7 +125,8 @@ def execution_task(casl2_file, out_file):
         )
         with open(out_file, mode="w", encoding="utf-8") as fp:
             for line in terminal_text:
-                fp.write(line + "\n")
+                if (line.startswith("IN>") or line.startswith("OUT>")):
+                    fp.write(line + "\n")
     except Casl2AssembleError as exc:
         with open(out_file, mode="w", encoding="utf-8") as fp:
             fp.write("============ASSEMBLE ERROR==============\n")
