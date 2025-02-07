@@ -41,7 +41,7 @@ LPP_REVOKE_CONSENT_TEXT = """
 同意を取り消した場合、今後、情報の収集は行われません。
 """
 
-LPP_SOURCE_FILES = ["*.c", "*.h", "CMakelists.txt", "Makefile"]
+LPP_SOURCE_FILES = ["*.c", "*.h", "CMakelists.txt", "Makefile", "makefile"]
 
 TEST_BASE_DIR = os.path.join(os.path.dirname(lpp_collector.__file__), "testcases")
 

@@ -87,7 +87,7 @@ def test_compile():
     """指定ディレクトリでコンパイルができるかをテスト"""
     cwd = os.getcwd()
     os.chdir(TARGETPATH)
-    if os.path.isfile("Makefile"):
+    if os.path.isfile("Makefile") or os.path.isfile("makefile"):
         exec_res = command("make")
     else:
         exec_res = command(f"gcc -w -o {TARGET} *.c")
