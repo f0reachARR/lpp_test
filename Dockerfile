@@ -67,6 +67,11 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# install doxygen and uplatex packages 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    doxygen graphviz texlive-latex-extra texlive-lang-japanese texlive-fonts-extra xdvik-ja
+
 WORKDIR /lpp/test
 
 # Copy shell related files
