@@ -64,13 +64,22 @@ RUN apt-get update \
     ca-certificates curl gnupg gdb make \
     python3-pip tmux \
     vim less cmake g++ bash-completion whiptail \
+    doxygen graphviz texlive-latex-extra texlive-lang-japanese texlive-fonts-extra xdvik-ja \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# install doxygen and uplatex packages 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-    doxygen graphviz texlive-latex-extra texlive-lang-japanese texlive-fonts-extra xdvik-ja
+# essential files for doxygen
+WORKDIR /doxygen
+COPY docker/doxygen/Doxyfile /doxygen/Doxyfile
+COPY docker/doxygen/books.cls /doxygen/book.cls
+COPY docker/doxygen/doxygenjptext.sty /doxygen/doxygenjptext.sty
+COPY docker/doxygen/fontsettings.sty /doxygen/fontsettings.sty
+COPY docker/doxygen/hyperlinkfix.sty /doxygen/hyperlinkfix.sty
+COPY docker/doxygen/pdfinfo.sty /doxygen/pdfinfo.sty
+COPY docker/doxygen/kit_header.tex /doxygen/kit_header.tex
+COPY docker/doxygen/kit_footer.tex /doxygen/kit_footer.tex
+COPY docker/doxygen/genPDF.sh /usr/local/bin/lppdoxygen
+RUN chmod +x /usr/local/bin/lppdoxygen
 
 WORKDIR /lpp/test
 
