@@ -70,14 +70,7 @@ RUN apt-get update \
 
 # essential files for doxygen
 WORKDIR /doxygen
-COPY docker/doxygen/Doxyfile /doxygen/Doxyfile
-COPY docker/doxygen/books.cls /doxygen/book.cls
-COPY docker/doxygen/doxygenjptext.sty /doxygen/doxygenjptext.sty
-COPY docker/doxygen/fontsettings.sty /doxygen/fontsettings.sty
-COPY docker/doxygen/hyperlinkfix.sty /doxygen/hyperlinkfix.sty
-COPY docker/doxygen/pdfinfo.sty /doxygen/pdfinfo.sty
-COPY docker/doxygen/kit_header.tex /doxygen/kit_header.tex
-COPY docker/doxygen/kit_footer.tex /doxygen/kit_footer.tex
+COPY docker/doxygen/ /doxygen/
 COPY docker/doxygen/genPDF.sh /usr/local/bin/lppdoxygen
 RUN chmod +x /usr/local/bin/lppdoxygen
 
