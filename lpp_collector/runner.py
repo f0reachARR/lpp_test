@@ -87,10 +87,7 @@ def run_pytest(args):
     # Sort testcases by name
     testcase_paths = sorted([str(testcase.absolute()) for testcase in testcases])
 
-    # print(f"Running pytest with {testcase_paths}")
-
     pwd = os.getcwd()
-    os.environ["LPP_TARGET_PATH"] = pwd
     subprocess.call(
         [
             "pytest",
@@ -98,6 +95,7 @@ def run_pytest(args):
             *testcase_paths,
         ],
         cwd=TEST_BASE_DIR,
+        env=dict(os.environ, LPP_TARGET_PATH=os.getcwd()),
     )
     os.chdir(pwd)
 
