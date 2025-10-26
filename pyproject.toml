@@ -1,29 +1,29 @@
-[tool.poetry]
+[project]
 name = "lpp-collector"
 version = "0.1.6"
 description = ""
-authors = ["f0reachARR <f0reach@f0reach.me>"]
+authors = [{ name = "f0reachARR", email = "f0reach@f0reach.me" }]
+requires-python = ">=3.6"
 readme = "README.md"
+dependencies = [
+    "pytest>=6.2.5,<7",
+    "whiptail-dialogs>=0.4.0,<0.5",
+    "httpx>=0.20.0,<0.28.0",
+    "attrs>=21.3.0",
+    "python-dateutil>=2.8.0,<3",
+    "pytest-timeout>=2,<3",
+    "argcomplete>=3,<4",
+    "pytest-json-report>=1.5.0,<2",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.6"
-pytest = "^6.2.5"
-whiptail-dialogs = "^0.4.0"
-httpx = ">=0.20.0,<0.28.0"
-attrs = ">=21.3.0"
-python-dateutil = "^2.8.0"
-pytest-timeout = "^2"
-argcomplete = "^3"
-pytest-json-report = "^1.5.0"
-
-[tool.poetry.plugins.pytest11]
-lpp_collector = "lpp_collector"
-
-[tool.poetry.scripts]
+[project.scripts]
 lppconsent = "lpp_collector.consent:main"
 lpptest = "lpp_collector.runner:main_PYTHON_ARGCOMPLETE_OK"
 lppshell = "lpp_collector.shell:main"
 
+[project.entry-points.pytest11]
+lpp_collector = "lpp_collector"
+
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
