@@ -1,5 +1,5 @@
 # hadolint global ignore=DL3006,DL3008,DL3013
-FROM node:20-bookworm-slim AS build_env
+FROM node:20-bookworm-slim AS build_external
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -24,19 +24,16 @@ RUN wget https://github.com/starship/starship/releases/download/v1.19.0/starship
     && tar xvf starship-x86_64-unknown-linux-gnu.tar.gz
 
 ################################################################################
-FROM python:3.10-slim AS collector
+FROM ghcr.io/astral-sh/uv:latest AS build_collector
 WORKDIR /app
 ARG LPP_PYTHON_BASE=.
 
-RUN pip install poetry==1.7 \
-    && poetry config virtualenvs.create false
-
-COPY ${LPP_PYTHON_BASE}/pyproject.toml ${LPP_PYTHON_BASE}/poetry.lock* ./
-RUN poetry install
+COPY ${LPP_PYTHON_BASE}/pyproject.toml ${LPP_PYTHON_BASE}/uv.lock* ./
+RUN uv sync --locked
 
 COPY ${LPP_PYTHON_BASE}/ ./
 
-RUN rm -f ./dist/*.whl && poetry build -f wheel
+RUN rm -f ./dist/*.whl && uv build
 
 ################################################################################
 # 演習室は Ubuntu 22.04 なので
