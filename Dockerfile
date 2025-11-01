@@ -24,7 +24,7 @@ RUN wget https://github.com/starship/starship/releases/download/v1.19.0/starship
     && tar xvf starship-x86_64-unknown-linux-gnu.tar.gz
 
 ################################################################################
-FROM ghcr.io/astral-sh/uv:latest AS build_collector
+FROM ghcr.io/astral-sh/uv:debian AS build_collector
 WORKDIR /app
 ARG LPP_PYTHON_BASE=.
 
