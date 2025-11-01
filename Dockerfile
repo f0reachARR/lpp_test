@@ -27,11 +27,10 @@ RUN wget https://github.com/starship/starship/releases/download/v1.19.0/starship
 FROM ghcr.io/astral-sh/uv:debian AS build_collector
 WORKDIR /app
 ARG LPP_PYTHON_BASE=.
-
-COPY ${LPP_PYTHON_BASE}/pyproject.toml ${LPP_PYTHON_BASE}/uv.lock* ./
-RUN uv sync --locked
+ENV UV_LINK_MODE=copy
 
 COPY ${LPP_PYTHON_BASE}/ ./
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked
 
 RUN rm -f ./dist/*.whl && uv build
 
