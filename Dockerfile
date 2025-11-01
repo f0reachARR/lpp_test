@@ -74,8 +74,8 @@ RUN chmod +x /usr/local/bin/lppdoxygen
 WORKDIR /lpp/test
 
 # Copy shell related files
-COPY --from=build_env /etc/motd /etc/motd
-COPY --from=build_env /starship/starship /usr/local/bin/starship
+COPY --from=build_external /etc/motd /etc/motd
+COPY --from=build_external /starship/starship /usr/local/bin/starship
 COPY ./docker/pytest /usr/local/bin/pytest
 COPY ./docker/bashrc /root/.bashrc
 COPY ./docker/issue /etc/issue
@@ -85,11 +85,11 @@ COPY ./docker/starship.toml /root/.config/starship.toml
 
 RUN touch /.dockerenv
 
-COPY --from=build_env /casljs /casljs
+COPY --from=build_external /casljs /casljs
 
 RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/motd && cat /etc/issue ' >> /etc/bash.bashrc
 
-COPY --from=collector /app/dist/*.whl /tmp/
+COPY --from=build_collector /app/dist/*.whl /tmp/
 
 RUN pip install /tmp/*.whl \
     && rm -rf /tmp/*.whl \
