@@ -90,7 +90,7 @@ RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/motd && cat /etc/issue ' 
 
 COPY --from=build_collector /app/dist/*.whl /tmp/
 
-RUN pip install /tmp/*.whl \
+RUN --mount=type=cache,mode=0755,target=/root/.cache/pip pip install /tmp/*.whl \
     && rm -rf /tmp/*.whl \
     && python3 -c 'from lpp_collector.mklink import main; main()'
 

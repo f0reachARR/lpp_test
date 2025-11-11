@@ -1,18 +1,15 @@
 # PYTHON_ARGCOMPLETE_OK
 
 import subprocess
-import sys
 from typing import List
 from lpp_collector.config import (
-    LPP_DATA_DIR,
     TEST_BASE_DIR,
-    IS_DOCKER_ENV,
 )
 import argcomplete, argparse
 import glob
 from pathlib import Path
-from .docker import fix_permission, run_test_container, run_debug_build, update
 import os
+from dockerize import DockerizeConfiguration, Dockerize
 
 
 all_testcases = [
@@ -66,8 +63,11 @@ full_parser.add_argument("pytest_args", nargs=argparse.REMAINDER)
 
 argcomplete.autocomplete(full_parser)
 
+dockerize = Dockerize(DockerizeConfiguration.default())
 
-def run_pytest(args):
+
+def run_pytest():
+    args = full_parser.parse_args()
     testsuite: str = args.testsuite
     testcases = [
         testcase for testcase in all_testcases if testcase.parent.name == testsuite
@@ -100,29 +100,5 @@ def run_pytest(args):
     os.chdir(pwd)
 
 
-def main():
-    args = full_parser.parse_args()
-
-    if not os.path.exists(LPP_DATA_DIR):
-        os.mkdir(LPP_DATA_DIR)
-    # print(args)
-    if args.update:
-        update(True)
-        return
-
-    if args.run_pytest or IS_DOCKER_ENV:
-        run_pytest(args)
-    else:
-        if "LPP_DOCKER_BASE" in os.environ:
-            run_debug_build(os.environ["LPP_DOCKER_BASE"])
-        else:
-            update()
-        run_test_container(["lpptest", *sys.argv[1:]])
-
-    if IS_DOCKER_ENV:
-        # Fix permissions
-        fix_permission()
-
-
 def main_PYTHON_ARGCOMPLETE_OK():
-    main()
+    run_pytest()
