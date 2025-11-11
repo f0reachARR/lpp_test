@@ -13,6 +13,7 @@ import glob
 from pathlib import Path
 from .docker import fix_permission, run_test_container, run_debug_build, update
 import os
+import pytest
 
 
 all_testcases = [
@@ -91,13 +92,12 @@ def run_pytest(args):
 
     pwd = os.getcwd()
     os.environ["LPP_TARGET_PATH"] = pwd
-    subprocess.call(
+    os.chdir(TEST_BASE_DIR)
+    pytest.main(
         [
-            "pytest",
             *args.pytest_args,
             *testcase_paths,
-        ],
-        cwd=TEST_BASE_DIR,
+        ]
     )
     os.chdir(pwd)
 

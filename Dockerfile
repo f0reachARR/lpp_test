@@ -24,10 +24,12 @@ RUN wget https://github.com/starship/starship/releases/download/v1.19.0/starship
     && tar xvf starship-x86_64-unknown-linux-gnu.tar.gz
 
 ################################################################################
-FROM ghcr.io/astral-sh/uv:debian AS build_collector
+FROM ubuntu:22.04 AS build_collector
 WORKDIR /app
 ARG LPP_PYTHON_BASE=.
 ENV UV_LINK_MODE=copy
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 COPY ${LPP_PYTHON_BASE}/ ./
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked
