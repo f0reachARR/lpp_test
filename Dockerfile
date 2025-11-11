@@ -1,5 +1,5 @@
 # hadolint global ignore=DL3006,DL3008,DL3013
-FROM node:20-bookworm-slim AS build_env
+FROM node:20-bookworm-slim AS build_external
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -24,19 +24,15 @@ RUN wget https://github.com/starship/starship/releases/download/v1.19.0/starship
     && tar xvf starship-x86_64-unknown-linux-gnu.tar.gz
 
 ################################################################################
-FROM python:3.10-slim AS collector
+FROM ghcr.io/astral-sh/uv:debian AS build_collector
 WORKDIR /app
 ARG LPP_PYTHON_BASE=.
-
-RUN pip install poetry==1.7 \
-    && poetry config virtualenvs.create false
-
-COPY ${LPP_PYTHON_BASE}/pyproject.toml ${LPP_PYTHON_BASE}/poetry.lock* ./
-RUN poetry install
+ENV UV_LINK_MODE=copy
 
 COPY ${LPP_PYTHON_BASE}/ ./
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --locked
 
-RUN rm -f ./dist/*.whl && poetry build -f wheel
+RUN rm -f ./dist/*.whl && uv build
 
 ################################################################################
 # 演習室は Ubuntu 22.04 なので
@@ -77,8 +73,8 @@ RUN chmod +x /usr/local/bin/lppdoxygen
 WORKDIR /lpp/test
 
 # Copy shell related files
-COPY --from=build_env /etc/motd /etc/motd
-COPY --from=build_env /starship/starship /usr/local/bin/starship
+COPY --from=build_external /etc/motd /etc/motd
+COPY --from=build_external /starship/starship /usr/local/bin/starship
 COPY ./docker/pytest /usr/local/bin/pytest
 COPY ./docker/bashrc /root/.bashrc
 COPY ./docker/issue /etc/issue
@@ -88,13 +84,13 @@ COPY ./docker/starship.toml /root/.config/starship.toml
 
 RUN touch /.dockerenv
 
-COPY --from=build_env /casljs /casljs
+COPY --from=build_external /casljs /casljs
 
 RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/motd && cat /etc/issue ' >> /etc/bash.bashrc
 
-COPY --from=collector /app/dist/*.whl /tmp/
+COPY --from=build_collector /app/dist/*.whl /tmp/
 
-RUN pip install /tmp/*.whl \
+RUN --mount=type=cache,mode=0755,target=/root/.cache/pip pip install /tmp/*.whl \
     && rm -rf /tmp/*.whl \
     && python3 -c 'from lpp_collector.mklink import main; main()'
 
