@@ -1,0 +1,4 @@
+Line:    3 ERROR: variable name is undefined. (current token: 'NAME')
+Line:    3 ERROR: expression is expeced. (current token: 'NAME')
+Line:    3 ERROR: Parser aborted with error. (current token: 'NAME')
+
