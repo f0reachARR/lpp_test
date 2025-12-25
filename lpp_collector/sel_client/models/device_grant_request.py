@@ -6,39 +6,27 @@ from typing import Any, TypeVar
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-from ..models.test_case_result_passed import TestCaseResultPassed
-
-T = TypeVar("T", bound="TestCaseResult")
+T = TypeVar("T", bound="DeviceGrantRequest")
 
 
 @_attrs_define
-class TestCaseResult:
+class DeviceGrantRequest:
     """
     Attributes:
-        name (str):
-        passed (TestCaseResultPassed):
-        message (str):
+        student_id (str):
     """
 
-    name: str
-    passed: TestCaseResultPassed
-    message: str
+    student_id: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        name = self.name
-
-        passed = self.passed.value
-
-        message = self.message
+        student_id = self.student_id
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
-                "name": name,
-                "passed": passed,
-                "message": message,
+                "studentId": student_id,
             }
         )
 
@@ -47,20 +35,14 @@ class TestCaseResult:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        name = d.pop("name")
+        student_id = d.pop("studentId")
 
-        passed = TestCaseResultPassed(d.pop("passed"))
-
-        message = d.pop("message")
-
-        test_case_result = cls(
-            name=name,
-            passed=passed,
-            message=message,
+        device_grant_request = cls(
+            student_id=student_id,
         )
 
-        test_case_result.additional_properties = d
-        return test_case_result
+        device_grant_request.additional_properties = d
+        return device_grant_request
 
     @property
     def additional_keys(self) -> list[str]:

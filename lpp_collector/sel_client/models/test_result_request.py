@@ -1,33 +1,17 @@
-from typing import (
-    Any,
-    Dict,
-    Type,
-    TypeVar,
-    Tuple,
-    Optional,
-    BinaryIO,
-    TextIO,
-    TYPE_CHECKING,
-)
+from __future__ import annotations
 
-from typing import List
-
+import datetime
+import json
+from collections.abc import Mapping
+from io import BytesIO
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-import json
-
-from ..types import UNSET, Unset
-
 from dateutil.parser import isoparse
-import datetime
-from typing import Union
-from typing import cast, List
-from typing import cast
-from io import BytesIO
-from ..types import UNSET, Unset
-from typing import Dict
-from ..types import File, FileJsonType
+
+from .. import types
+from ..types import File
 
 if TYPE_CHECKING:
     from ..models.test_case_result import TestCaseResult
@@ -42,100 +26,77 @@ class TestResultRequest:
     Attributes:
         device_time (datetime.datetime):
         test_type (str):
-        result (List['TestCaseResult']):
-        testcases (Union[Unset, File]):
-        source_code (Union[Unset, File]):
+        testcases (File):
+        source_code (File):
+        result (list[TestCaseResult]):
     """
 
     device_time: datetime.datetime
     test_type: str
-    result: List["TestCaseResult"]
-    testcases: Union[Unset, File] = UNSET
-    source_code: Union[Unset, File] = UNSET
-    additional_properties: Dict[str, Any] = _attrs_field(init=False, factory=dict)
+    testcases: File
+    source_code: File
+    result: list[TestCaseResult]
+    additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
-        from ..models.test_case_result import TestCaseResult
-
+    def to_dict(self) -> dict[str, Any]:
         device_time = self.device_time.isoformat()
 
         test_type = self.test_type
+
+        testcases = self.testcases.to_tuple()
+
+        source_code = self.source_code.to_tuple()
 
         result = []
         for result_item_data in self.result:
             result_item = result_item_data.to_dict()
             result.append(result_item)
 
-        testcases: Union[Unset, FileJsonType] = UNSET
-        if not isinstance(self.testcases, Unset):
-            testcases = self.testcases.to_tuple()
-
-        source_code: Union[Unset, FileJsonType] = UNSET
-        if not isinstance(self.source_code, Unset):
-            source_code = self.source_code.to_tuple()
-
-        field_dict: Dict[str, Any] = {}
+        field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
                 "deviceTime": device_time,
                 "testType": test_type,
+                "testcases": testcases,
+                "sourceCode": source_code,
                 "result": result,
             }
         )
-        if testcases is not UNSET:
-            field_dict["testcases"] = testcases
-        if source_code is not UNSET:
-            field_dict["sourceCode"] = source_code
 
         return field_dict
 
-    def to_multipart(self) -> Dict[str, Any]:
-        device_time = self.device_time.strftime("%Y-%m-%dT%H:%M:%SZ").encode()
-        device_time = (None, device_time, "text/plain")
+    def to_multipart(self) -> types.RequestFiles:
+        files: types.RequestFiles = []
 
-        test_type = (None, str(self.test_type).encode(), "text/plain")
+        files.append(("deviceTime", (None, self.device_time.isoformat().encode(), "text/plain")))
 
-        _temp_result = []
-        for result_item_data in self.result:
-            result_item = result_item_data.to_dict()
-            _temp_result.append(result_item)
-        result = (None, json.dumps(_temp_result).encode(), "application/json")
+        files.append(("testType", (None, str(self.test_type).encode(), "text/plain")))
 
-        testcases: Union[Unset, FileJsonType] = UNSET
-        if not isinstance(self.testcases, Unset):
-            testcases = self.testcases.to_tuple()
+        files.append(("testcases", self.testcases.to_tuple()))
 
-        source_code: Union[Unset, FileJsonType] = UNSET
-        if not isinstance(self.source_code, Unset):
-            source_code = self.source_code.to_tuple()
+        files.append(("sourceCode", self.source_code.to_tuple()))
 
-        field_dict: Dict[str, Any] = {}
+        for result_item_element in self.result:
+            files.append(("result", (None, json.dumps(result_item_element.to_dict()).encode(), "application/json")))
+
         for prop_name, prop in self.additional_properties.items():
-            field_dict[prop_name] = (None, str(prop).encode(), "text/plain")
+            files.append((prop_name, (None, str(prop).encode(), "text/plain")))
 
-        field_dict.update(
-            {
-                "deviceTime": device_time,
-                "testType": test_type,
-                "result": result,
-            }
-        )
-        if testcases is not UNSET:
-            field_dict["testcases"] = testcases
-        if source_code is not UNSET:
-            field_dict["sourceCode"] = source_code
-
-        return field_dict
+        return files
 
     @classmethod
-    def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
+    def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.test_case_result import TestCaseResult
 
-        d = src_dict.copy()
+        d = dict(src_dict)
         device_time = isoparse(d.pop("deviceTime"))
 
         test_type = d.pop("testType")
+
+        testcases = File(payload=BytesIO(d.pop("testcases")))
+
+        source_code = File(payload=BytesIO(d.pop("sourceCode")))
 
         result = []
         _result = d.pop("result")
@@ -144,33 +105,19 @@ class TestResultRequest:
 
             result.append(result_item)
 
-        _testcases = d.pop("testcases", UNSET)
-        testcases: Union[Unset, File]
-        if isinstance(_testcases, Unset):
-            testcases = UNSET
-        else:
-            testcases = File(payload=BytesIO(_testcases))
-
-        _source_code = d.pop("sourceCode", UNSET)
-        source_code: Union[Unset, File]
-        if isinstance(_source_code, Unset):
-            source_code = UNSET
-        else:
-            source_code = File(payload=BytesIO(_source_code))
-
         test_result_request = cls(
             device_time=device_time,
             test_type=test_type,
-            result=result,
             testcases=testcases,
             source_code=source_code,
+            result=result,
         )
 
         test_result_request.additional_properties = d
         return test_result_request
 
     @property
-    def additional_keys(self) -> List[str]:
+    def additional_keys(self) -> list[str]:
         return list(self.additional_properties.keys())
 
     def __getitem__(self, key: str) -> Any:

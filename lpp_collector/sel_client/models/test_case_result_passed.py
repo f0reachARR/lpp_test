@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class TestCaseResultPassed(str, Enum):
     FAILED = "FAILED"
     PASSED = "PASSED"

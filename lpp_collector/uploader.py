@@ -12,11 +12,12 @@ import tarfile
 from io import BytesIO
 from datetime import datetime
 from pickle import load, dump
+from httpx import Timeout
 
 
 class Uploader:
     def __init__(self, device_id: str):
-        self.client = Client(base_url=LPP_BASE_URL, timeout=3)
+        self.client = Client(base_url=LPP_BASE_URL, timeout=Timeout(3))
         self.device_id = device_id
         self.test_results: list[TestCaseResult] = []
         self.test_queue_dir = Path(LPP_DATA_DIR) / "upload_queue"
