@@ -1,10 +1,5 @@
-import os
-from _pytest.main import Session
 from _pytest.config import Config
 from _pytest.reports import TestReport
-from _pytest.nodes import Item
-from typing import List
-from pathlib import Path
 
 from lpp_collector.config import TARGETPATH
 
@@ -16,11 +11,10 @@ class LppCollector:
     def __init__(self, config: Config):
         self.consent = LppDevice()
         self.uploader = Uploader(device_id="test_device_id")
+        # Start background retry of failed uploads
+        self.uploader.start_background_retry()
 
     def pytest_runtest_logreport(self, report: TestReport):
-        if self.consent.get_device() is None:
-            return
-
         if report.when == "call":
             self.uploader.add_test_result(report)
 
@@ -31,8 +25,6 @@ class LppCollector:
 
         if not self.uploader.has_any_test_result():
             return
-
-        print("\nUploading test results...")
 
         test_type = ""
 
