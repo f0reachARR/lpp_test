@@ -6,24 +6,35 @@ import httpx
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
-from ...types import Response
+from ...models.device_grant_request import DeviceGrantRequest
+from ...types import UNSET, Response, Unset
 
 
 def _get_kwargs(
     device_id: str,
+    *,
+    body: DeviceGrantRequest | Unset = UNSET,
 ) -> dict[str, Any]:
+    headers: dict[str, Any] = {}
+
     _kwargs: dict[str, Any] = {
-        "method": "delete",
+        "method": "post",
         "url": "/api/device/{device_id}".format(
             device_id=quote(str(device_id), safe=""),
         ),
     }
 
+    if not isinstance(body, Unset):
+        _kwargs["json"] = body.to_dict()
+
+    headers["Content-Type"] = "application/json"
+
+    _kwargs["headers"] = headers
     return _kwargs
 
 
 def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Any | None:
-    if response.status_code == 204:
+    if response.status_code == 200:
         return None
 
     if client.raise_on_unexpected_status:
@@ -45,10 +56,12 @@ def sync_detailed(
     device_id: str,
     *,
     client: AuthenticatedClient | Client,
+    body: DeviceGrantRequest | Unset = UNSET,
 ) -> Response[Any]:
     """
     Args:
         device_id (str):
+        body (DeviceGrantRequest | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -60,6 +73,7 @@ def sync_detailed(
 
     kwargs = _get_kwargs(
         device_id=device_id,
+        body=body,
     )
 
     response = client.get_httpx_client().request(
@@ -73,10 +87,12 @@ async def asyncio_detailed(
     device_id: str,
     *,
     client: AuthenticatedClient | Client,
+    body: DeviceGrantRequest | Unset = UNSET,
 ) -> Response[Any]:
     """
     Args:
         device_id (str):
+        body (DeviceGrantRequest | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -88,6 +104,7 @@ async def asyncio_detailed(
 
     kwargs = _get_kwargs(
         device_id=device_id,
+        body=body,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)

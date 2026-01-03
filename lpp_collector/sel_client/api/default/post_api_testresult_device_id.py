@@ -1,53 +1,47 @@
 from http import HTTPStatus
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any
+from urllib.parse import quote
 
 import httpx
 
-from ...client import AuthenticatedClient, Client
-from ...types import Response, UNSET
 from ... import errors
-
-from typing import cast
-from typing import Dict
+from ...client import AuthenticatedClient, Client
 from ...models.test_result_request import TestResultRequest
+from ...types import UNSET, Response, Unset
 
 
 def _get_kwargs(
     device_id: str,
     *,
-    body: TestResultRequest,
-) -> Dict[str, Any]:
-    headers: Dict[str, Any] = {}
+    body: TestResultRequest | Unset = UNSET,
+) -> dict[str, Any]:
+    headers: dict[str, Any] = {}
 
-    _kwargs: Dict[str, Any] = {
+    _kwargs: dict[str, Any] = {
         "method": "post",
         "url": "/api/testresult/{device_id}".format(
-            device_id=device_id,
+            device_id=quote(str(device_id), safe=""),
         ),
     }
 
-    _body = body.to_multipart()
-
-    _kwargs["files"] = _body
+    if not isinstance(body, Unset):
+        _kwargs["files"] = body.to_multipart()
 
     _kwargs["headers"] = headers
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Any]:
-    if response.status_code == HTTPStatus.CREATED:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Any | None:
+    if response.status_code == 201:
         return None
+
     if client.raise_on_unexpected_status:
         raise errors.UnexpectedStatus(response.status_code, response.content)
     else:
         return None
 
 
-def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Response) -> Response[Any]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -59,20 +53,20 @@ def _build_response(
 def sync_detailed(
     device_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: TestResultRequest,
-) -> Response:
+    client: AuthenticatedClient | Client,
+    body: TestResultRequest | Unset = UNSET,
+) -> Response[Any]:
     """
     Args:
         device_id (str):
-        body (TestResultRequest):
+        body (TestResultRequest | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response
+        Response[Any]
     """
 
     kwargs = _get_kwargs(
@@ -90,20 +84,20 @@ def sync_detailed(
 async def asyncio_detailed(
     device_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: TestResultRequest,
-) -> Response:
+    client: AuthenticatedClient | Client,
+    body: TestResultRequest | Unset = UNSET,
+) -> Response[Any]:
     """
     Args:
         device_id (str):
-        body (TestResultRequest):
+        body (TestResultRequest | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response
+        Response[Any]
     """
 
     kwargs = _get_kwargs(

@@ -15,57 +15,62 @@ from .config import (
 from json import load, dump
 
 try:
-    from typing import TypedDict
+    from typing import TypedDict, Optional
 except ImportError:
-    from typing_extensions import TypedDict
+    from typing_extensions import TypedDict, Optional
 from whiptail import Whiptail
 from .sel_client import Client
-from .sel_client.api.default import post_api_device, delete_api_device_device_id
+from .sel_client.api.default import (
+    delete_api_device_device_id,
+    post_api_device_device_id,
+)
 
-LPP_CONSENT_FILE = os.path.join(LPP_DATA_DIR, "consent.json")
+LPP_DEVICE_FILE = os.path.join(LPP_DATA_DIR, "device.json")
 
 
-class ConsentData(TypedDict):
+class DeviceData(TypedDict):
     device_id: str
 
 
-class LppExperimentConsent:
+class LppDevice:
     def __init__(self):
-        self._consent: typing.Optional[ConsentData] = None
-        self._load_consent()
-
-    def _load_consent(self):
+        self._device: Optional[DeviceData] = None
         try:
-            if os.path.exists(LPP_CONSENT_FILE):
-                with open(LPP_CONSENT_FILE, "r") as f:
-                    self._consent = load(f)
+            if os.path.exists(LPP_DEVICE_FILE):
+                with open(LPP_DEVICE_FILE, "r") as f:
+                    self._device = load(f)
+            else:
+                import uuid
+
+                self._device = DeviceData(device_id=str(uuid.uuid4()))
+                self.save_device(self._device)
         except Exception as e:
-            print(f"Failed to load experiment consent (unexpected error): {e}")
+            print(f"Failed to load device information (unexpected error): {e}")
 
-    def get_consent(self):
-        return self._consent
+    def get_device(self):
+        return self._device
 
-    def set_consent(self, consent: ConsentData):
-        self._consent = consent
+    def save_device(self, device: DeviceData):
+        self._device = device
         try:
-            with open(LPP_CONSENT_FILE, "w") as f:
-                dump(consent, f)
+            with open(LPP_DEVICE_FILE, "w") as f:
+                dump(device, f)
         except Exception as e:
-            print(f"Failed to save experiment consent (unexpected error): {e}")
+            print(f"Failed to save device information (unexpected error): {e}")
 
-    def delete_consent(self):
-        self._consent = None
-        os.remove(LPP_CONSENT_FILE)
+    def delete_device(self):
+        self._device = None
+        os.remove(LPP_DEVICE_FILE)
 
 
 def show_consent():
-    consent_info = LppExperimentConsent()
-    current_consent = consent_info.get_consent()
+    consent_info = LppDevice()
+    current_device = consent_info.get_device()
 
     whiptail = Whiptail(title="Consent Form for experiment")
     client = Client(LPP_BASE_URL)
 
-    if current_consent is not None:
+    if current_device is not None:
         consent = whiptail.run(
             "yesno",
             LPP_REVOKE_CONSENT_TEXT,
@@ -84,13 +89,12 @@ def show_consent():
 
         try:
             response = delete_api_device_device_id.sync_detailed(
-                current_consent["device_id"],
+                current_device["device_id"],
                 client=client,
             )
             if response is None:
                 print("同意情報の取り消しに失敗しました")
                 return
-            consent_info.delete_consent()
             print("同意情報を取り消しました")
         except Exception as e:
             print(f"同意情報の取り消しに失敗しました: {e}")
@@ -115,14 +119,16 @@ def show_consent():
         return
 
     try:
-        response = post_api_device.sync(client=client)
+        response = post_api_device_device_id.sync_detailed(
+            client=client, device_id=current_device["device_id"]
+        )
         if response is None:
             print("同意情報の送信に失敗しました")
             return
         url = response.consent_form_url
         print(LPP_AFTER_CONSENT_TEXT.format(form_url=url))
 
-        consent_info.set_consent({"device_id": response.device_id})
+        consent_info.save_device({"device_id": response.device_id})
 
     except Exception as e:
         print(f"同意情報の送信に失敗しました: {e}")

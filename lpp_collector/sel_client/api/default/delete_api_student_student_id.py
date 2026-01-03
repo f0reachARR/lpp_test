@@ -10,12 +10,12 @@ from ...types import Response
 
 
 def _get_kwargs(
-    device_id: str,
+    student_id: str,
 ) -> dict[str, Any]:
     _kwargs: dict[str, Any] = {
         "method": "delete",
-        "url": "/api/device/{device_id}".format(
-            device_id=quote(str(device_id), safe=""),
+        "url": "/api/student/{student_id}".format(
+            student_id=quote(str(student_id), safe=""),
         ),
     }
 
@@ -42,13 +42,13 @@ def _build_response(*, client: AuthenticatedClient | Client, response: httpx.Res
 
 
 def sync_detailed(
-    device_id: str,
+    student_id: str,
     *,
     client: AuthenticatedClient | Client,
 ) -> Response[Any]:
     """
     Args:
-        device_id (str):
+        student_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -59,7 +59,7 @@ def sync_detailed(
     """
 
     kwargs = _get_kwargs(
-        device_id=device_id,
+        student_id=student_id,
     )
 
     response = client.get_httpx_client().request(
@@ -70,13 +70,13 @@ def sync_detailed(
 
 
 async def asyncio_detailed(
-    device_id: str,
+    student_id: str,
     *,
     client: AuthenticatedClient | Client,
 ) -> Response[Any]:
     """
     Args:
-        device_id (str):
+        student_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -87,7 +87,7 @@ async def asyncio_detailed(
     """
 
     kwargs = _get_kwargs(
-        device_id=device_id,
+        student_id=student_id,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)

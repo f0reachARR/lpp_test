@@ -12,14 +12,19 @@ import tarfile
 from io import BytesIO
 from datetime import datetime
 from pickle import load, dump
+from httpx import Timeout
+import threading
 
 
 class Uploader:
     def __init__(self, device_id: str):
-        self.client = Client(base_url=LPP_BASE_URL, timeout=3)
+        self.client = Client(base_url=LPP_BASE_URL, timeout=Timeout(3))
         self.device_id = device_id
         self.test_results: list[TestCaseResult] = []
         self.test_queue_dir = Path(LPP_DATA_DIR) / "upload_queue"
+        self.stop_retry = threading.Event()
+        self.retry_thread = None
+        self.retry_success = True  # Track if background retry succeeded
 
     def add_test_result(self, report: TestReport):
         self.test_results.append(
@@ -51,9 +56,25 @@ class Uploader:
         with open(test_result_file, "wb") as f:
             dump(test_result, f)
 
+    def start_background_retry(self):
+        """Start background thread to retry failed uploads"""
+        if self.retry_thread is None or not self.retry_thread.is_alive():
+            self.stop_retry.clear()
+            self.retry_success = True  # Reset success flag
+            self.retry_thread = threading.Thread(target=self._background_retry_wrapper, daemon=True)
+            self.retry_thread.start()
+
+    def _background_retry_wrapper(self):
+        """Wrapper to capture _flush_test_queue result"""
+        self.retry_success = self._flush_test_queue()
+
     def _flush_test_queue(self) -> bool:
-        files = self.test_queue_dir.glob("*.dat")
+        files = list(self.test_queue_dir.glob("*.dat")) if self.test_queue_dir.exists() else []
         for file in files:
+            # Check if we should stop
+            if self.stop_retry.is_set():
+                return True
+            
             with open(file, "rb") as f:
                 test_result = load(f)
             try:
@@ -68,7 +89,7 @@ class Uploader:
 
                 file.unlink()
 
-            except:
+            except Exception as e:
                 # 1件でもアップロードに失敗した場合は、次回アップロード時に再度アップロードを試みる
                 return False
         return True
@@ -96,7 +117,13 @@ class Uploader:
         self._store_test_result(result)
 
     def upload(self, source_dir: str, test_dir: str, test_type: str):
-        can_upload = self._flush_test_queue()
+        # Stop background retry thread if running
+        self.stop_retry.set()
+        if self.retry_thread and self.retry_thread.is_alive():
+            self.retry_thread.join(timeout=0.5)  # Wait briefly for thread to stop
+        
+        # If background retry failed, skip upload and store for later
+        can_upload = self.retry_success
 
         # Find source code files
         source_files = sum(
@@ -121,8 +148,8 @@ class Uploader:
         # Upload test result
         try:
             if not can_upload:
-                raise Exception("Upload failed in previous attempt")
-
+                raise Exception("Background retry failed, skipping upload")
+            
             response = post_api_testresult_device_id.sync_detailed(
                 device_id=self.device_id, client=self.client, body=result
             )
@@ -130,6 +157,5 @@ class Uploader:
             if response.status_code != 201:
                 raise Exception(f"Failed to upload test results: {response.content}")
         except:
-            print(f"Failed to upload test results")
             self._store_test_result(result)
             return
