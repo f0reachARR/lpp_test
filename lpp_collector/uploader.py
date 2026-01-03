@@ -86,11 +86,10 @@ class Uploader:
                     raise Exception(
                         f"Failed to upload test results: {response.content}"
                     )
-                    print(f"Failed to upload test results: {response.content}")
 
                 file.unlink()
 
-            except:
+            except Exception as e:
                 # 1件でもアップロードに失敗した場合は、次回アップロード時に再度アップロードを試みる
                 return False
         return True

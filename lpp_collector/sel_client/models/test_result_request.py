@@ -39,7 +39,7 @@ class TestResultRequest:
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        device_time = self.device_time.isoformat()
+        device_time = self.device_time.strftime("%Y-%m-%dT%H:%M:%SZ").encode()
 
         test_type = self.test_type
 
@@ -69,7 +69,7 @@ class TestResultRequest:
     def to_multipart(self) -> types.RequestFiles:
         files: types.RequestFiles = []
 
-        files.append(("deviceTime", (None, self.device_time.isoformat().encode(), "text/plain")))
+        files.append(("deviceTime", (None, self.device_time.strftime("%Y-%m-%dT%H:%M:%SZ").encode(), "text/plain")))
 
         files.append(("testType", (None, str(self.test_type).encode(), "text/plain")))
 
@@ -77,8 +77,11 @@ class TestResultRequest:
 
         files.append(("sourceCode", self.source_code.to_tuple()))
 
+        _temp_result = []
         for result_item_element in self.result:
-            files.append(("result", (None, json.dumps(result_item_element.to_dict()).encode(), "application/json")))
+            _temp_result.append(result_item_element.to_dict())
+        
+        files.append(("result", (None, json.dumps(_temp_result).encode(), "application/json")))
 
         for prop_name, prop in self.additional_properties.items():
             files.append((prop_name, (None, str(prop).encode(), "text/plain")))

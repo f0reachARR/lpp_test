@@ -25,7 +25,7 @@ class LppCollector:
             self.uploader.store(source_dir=TARGETPATH, test_type="")
             return
 
-        test_type = ""
+        test_type = "a"
 
         self.uploader.device_id = self.consent.get_device()["device_id"]
         self.uploader.upload(source_dir=TARGETPATH, test_dir=".", test_type=test_type)
