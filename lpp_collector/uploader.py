@@ -73,7 +73,7 @@ class Uploader:
         for file in files:
             # Check if we should stop
             if self.stop_retry.is_set():
-                return False
+                return True
             
             with open(file, "rb") as f:
                 test_result = load(f)
@@ -86,6 +86,7 @@ class Uploader:
                     raise Exception(
                         f"Failed to upload test results: {response.content}"
                     )
+                    print(f"Failed to upload test results: {response.content}")
 
                 file.unlink()
 

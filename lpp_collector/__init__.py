@@ -11,6 +11,8 @@ class LppCollector:
     def __init__(self, config: Config):
         self.consent = LppDevice()
         self.uploader = Uploader(device_id="test_device_id")
+        if self.consent.get_device() is not None:
+            self.uploader.device_id = self.consent.get_device()["device_id"]
         # Start background retry of failed uploads
         self.uploader.start_background_retry()
 
@@ -21,9 +23,6 @@ class LppCollector:
     def pytest_sessionfinish(self, session, exitstatus):
         if self.consent.get_device() is None:
             self.uploader.store(source_dir=TARGETPATH, test_type="")
-            return
-
-        if not self.uploader.has_any_test_result():
             return
 
         test_type = ""
